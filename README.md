@@ -1,7 +1,5 @@
 # ColorPickerWPF
 
-A simple C# WPF Color Picker.
+A light-weight customizable .NET Color Picker for Windows Presentation Foundation.
 
-Very simple to use and add into your own WPF projects with a built-in apply button event.
-
-// Andreas Lill
+Contains a built-in apply button event for use in your own project.
