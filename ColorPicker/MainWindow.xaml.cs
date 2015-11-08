@@ -15,165 +15,6 @@ namespace ColorPicker
 {
     public delegate void ApplyEventHandler(object sender, EventArgs e);
 
-    public class ColorHSB
-    {
-        private double hue;
-        private double saturation;
-        private double brightness;
-
-        public double Hue
-        {
-            get { return hue; }
-
-            set
-            {
-                hue = value;
-
-                // Make sure hue is between 0 and 359
-                if (hue < 0)
-                    hue = 0;
-                if (hue >= 360)
-                    hue = 0;
-                if (Double.IsNaN(hue))
-                    hue = 0;
-            }
-        }
-
-        public double Saturation
-        {
-            get { return saturation; }
-            set { saturation = value; }
-        }
-
-        public double Brightness
-        {
-            get { return brightness; }
-            set { brightness = value; }
-        }
-
-        public ColorHSB()
-        {
-
-        }
-
-        public ColorHSB(double h, double s, double b)
-        {
-            Hue = h;
-            Saturation = s;
-            Brightness = b;
-        }
-
-        /// <summary>
-        /// Convert RGB color to HSB color.
-        /// </summary>
-        /// <param name="color">RGB color</param>
-        /// <returns>HSB color</returns>
-        public static ColorHSB RGBtoHSB(Color color)
-        {
-            double R = ((double)color.R / 255.0);
-            double G = ((double)color.G / 255.0);
-            double B = ((double)color.B / 255.0);
-
-            double max = Math.Max(R, Math.Max(G, B));
-            double min = Math.Min(R, Math.Min(G, B));
-
-            double hue = 0.0;
-
-            // Calculate the hue from RGB.
-            if (max == R && G >= B)
-            {
-                hue = 60 * (G - B) / (max - min);
-            }
-            else if (max == R && G < B)
-            {
-                hue = 60 * (G - B) / (max - min) + 360;
-            }
-            else if (max == G)
-            {
-                hue = 60 * (B - R) / (max - min) + 120;
-            }
-            else if (max == B)
-            {
-                hue = 60 * (R - G) / (max - min) + 240;
-            }
-
-            double s = (max == 0) ? 0.0 : (1.0 - (min / max));
-
-            return new ColorHSB(hue, s, max);
-        }
-
-        /// <summary>
-        /// Converts HSB color to RGB color.
-        /// </summary>
-        /// <param name="h">Hue</param>
-        /// <param name="s">Saturation</param>
-        /// <param name="b">Brightness</param>
-        /// <returns>RGB color</returns>
-        public static Color HSBtoRGB(double h, double s, double b)
-        {
-            double R = 0;
-            double G = 0;
-            double B = 0;
-
-            if (s == 0)
-            {
-                R = G = B = b;
-            }
-            else
-            {
-                // Calculate the color sector.
-                double sectorPos = h / 60.0;
-                int sectorNumber = (int)(Math.Floor(sectorPos));
-                // Get the fractional.
-                double fractionalSector = sectorPos - sectorNumber;
-
-                // Calculate the three axes of color.
-                double p = b * (1.0 - s);
-                double q = b * (1.0 - (s * fractionalSector));
-                double t = b * (1.0 - (s * (1 - fractionalSector)));
-
-                // Assign fractional colors to RGB based on the sector the angle.
-                switch (sectorNumber)
-                {
-                    case 0:
-                        R = b;
-                        G = t;
-                        B = p;
-                        break;
-                    case 1:
-                        R = q;
-                        G = b;
-                        B = p;
-                        break;
-                    case 2:
-                        R = p;
-                        G = b;
-                        B = t;
-                        break;
-                    case 3:
-                        R = p;
-                        G = q;
-                        B = b;
-                        break;
-                    case 4:
-                        R = t;
-                        G = p;
-                        B = b;
-                        break;
-                    case 5:
-                        R = b;
-                        G = p;
-                        B = q;
-                        break;
-                }
-            }
-
-            Color color = Color.FromRgb((byte)Double.Parse(String.Format("{0:0.00}", R * 255.0)), (byte)Double.Parse(String.Format("{0:0.00}", G * 255.0)), (byte)Double.Parse(String.Format("{0:0.00}", B * 255.0)));
-
-            return color;
-        }
-    }
-
     public partial class MainWindow : Window
     {
         // Event handler for Apply button.
@@ -440,7 +281,9 @@ namespace ColorPicker
             colorHSB.Hue = ((Canvas.GetLeft(ColorPickPointer) - Canvas.GetLeft(ColorMapImage)) / 255) * 360;
             colorHSB.Saturation = 1 - ((Canvas.GetTop(ColorPickPointer) - Canvas.GetTop(ColorMapImage)) / 255);
 
-            UpdateGradient(ColorHSB.HSBtoRGB(colorHSB.Hue, colorHSB.Saturation, 1));
+            ColorHSB gradientHSB = new ColorHSB(colorHSB.Hue, colorHSB.Saturation, 1);
+
+            UpdateGradient(ColorHSB.HSBtoRGB(gradientHSB));
         }
 
         /// <summary>
@@ -457,7 +300,8 @@ namespace ColorPicker
         /// </summary>
         private void UpdateColor()
         {
-            selectedColor = ColorHSB.HSBtoRGB(colorHSB.Hue, colorHSB.Saturation, colorHSB.Brightness);
+            ColorHSB selectedHSB = new ColorHSB(colorHSB.Hue, colorHSB.Saturation, colorHSB.Brightness);
+            selectedColor = ColorHSB.HSBtoRGB(selectedHSB);
 
             ColorPreviewBox.Background = GetBrush();
         }
